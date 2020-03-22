@@ -21,6 +21,11 @@ class SingleAttention(nn.Module):
         self.demographic_dim = demographic_dim
         self.time_aware = time_aware
 
+        self.attn = None
+
+        # batch_time = torch.arange(0, batch_mask.size()[1], dtype=torch.float32).reshape(1, batch_mask.size()[1], 1)
+        # batch_time = batch_time.repeat(batch_mask.size()[0], 1, 1)
+        
         if attention_type == 'add':
             if self.time_aware == True:
                 # self.Wx = nn.Parameter(torch.randn(attention_input_dim+1, attention_hidden_dim))
@@ -55,18 +60,37 @@ class SingleAttention(nn.Module):
             
             nn.init.kaiming_uniform_(self.Wh, a=math.sqrt(5))
             nn.init.kaiming_uniform_(self.Wa, a=math.sqrt(5))
+
+        elif attention_type == 'new':
+            self.Wt = nn.Parameter(torch.randn(attention_input_dim, attention_hidden_dim))
+            self.Wx = nn.Parameter(torch.randn(attention_input_dim, attention_hidden_dim))
+
+            self.rate = nn.Parameter(torch.ones(1))
+            nn.init.kaiming_uniform_(self.Wx, a=math.sqrt(5))
+            nn.init.kaiming_uniform_(self.Wt, a=math.sqrt(5))
+
+
         else:
             raise RuntimeError('Wrong attention type.')
         
         self.tanh = nn.Tanh()
         self.softmax = nn.Softmax()
+        self.sigmoid = nn.Sigmoid()
     
     def forward(self, input, demo=None):
  
         batch_size, time_step, input_dim = input.size() # batch_size * time_step * hidden_dim(i)
-        
+        #assert(input_dim == self.input_dim)
 
-        time_decays = torch.tensor(range(47,-1,-1), dtype=torch.float32).unsqueeze(-1).unsqueeze(0).to(device)# 1*t*1
+        # time_decays = torch.zeros((time_step,time_step)).to(device)# t*t
+        # for this_time in range(time_step):
+        #     for pre_time in range(time_step):
+        #         if pre_time > this_time:
+        #             break
+        #         time_decays[this_time][pre_time] = torch.tensor(this_time - pre_time, dtype=torch.float32).to(device)
+        # b_time_decays = tile(time_decays, 0, batch_size).view(batch_size,time_step,time_step).unsqueeze(-1).to(device)# b t t 1
+
+        time_decays = torch.tensor(range(time_step-1,-1,-1), dtype=torch.float32).unsqueeze(-1).unsqueeze(0).to(device)# 1*t*1
         b_time_decays = time_decays.repeat(batch_size,1,1)# b t 1
         
         if self.attention_type == 'add': #B*T*I  @ H*I
@@ -103,7 +127,33 @@ class SingleAttention(nn.Module):
             e = torch.matmul(h, self.Wa) + self.ba #B*T*1
             e = torch.reshape(e, (batch_size, time_step)) # b t 
 
+        elif self.attention_type == 'new':
+            
+            q = torch.matmul(input[:,-1,:], self.Wt)# b h
+            q = torch.reshape(q, (batch_size, 1, self.attention_hidden_dim)) #B*1*H
+            k = torch.matmul(input, self.Wx)#b t h
+            dot_product = torch.matmul(q, k.transpose(1, 2)).squeeze() # b t
+            denominator =  self.rate * torch.log(2.71828 +  (1-self.sigmoid(dot_product)) * (b_time_decays.squeeze()))
+            e = dot_product/denominator # b * t
+
+        
+        # e = torch.exp(e - torch.max(e, dim=-1, keepdim=True).values)
+        
+        # if self.attention_width is not None:
+        #     if self.history_only:
+        #         lower = torch.arange(0, time_step).to(device) - (self.attention_width - 1)
+        #     else:
+        #         lower = torch.arange(0, time_step).to(device) - self.attention_width // 2
+        #     lower = lower.unsqueeze(-1)
+        #     upper = lower + self.attention_width
+        #     indices = torch.arange(0, time_step).unsqueeze(0).to(device)
+        #     e = e * (lower <= indices).float() * (indices < upper).float()
+        
+        # s = torch.sum(e, dim=-1, keepdim=True)
+        # mask = subsequent_mask(time_step).to(device) # 1 t t 下三角
+        # scores = e.masked_fill(mask == 0, -1e9)# b t t 下三角
         a = self.softmax(e) #B*T
+        self.attn = a
         v = torch.matmul(a.unsqueeze(1), input).squeeze() #B*I
 
         return v, a
@@ -367,13 +417,21 @@ class ConCare(nn.Module):
         assert(self.d_model % self.MHD_num_head == 0)
 
 
-        GRU_embeded_input = self.GRUs[0](input[:,:,0].unsqueeze(-1), Variable(torch.zeros(batch_size, self.hidden_dim).unsqueeze(0)).to(device))[0][:,-1,:].unsqueeze(1) # b 1 h
+        GRU_embeded_input = self.GRUs[0](input[:,:,0].unsqueeze(-1), Variable(torch.zeros(batch_size, self.hidden_dim).unsqueeze(0)).to(device))[0] # b t h
+        Attention_embeded_input, self.gru_atten = self.LastStepAttentions[0](GRU_embeded_input)
+        Attention_embeded_input = Attention_embeded_input.unsqueeze(1)# b 1 h
+        self.gru_atten = self.gru_atten.unsqueeze(1)# b 1 h
         for i in range(feature_dim-1):
-            embeded_input = self.GRUs[i+1](input[:,:,i+1].unsqueeze(-1), Variable(torch.zeros(batch_size, self.hidden_dim).unsqueeze(0)).to(device))[0][:,-1,:].unsqueeze(1) # b 1 h
-            GRU_embeded_input = torch.cat((GRU_embeded_input, embeded_input), 1)
+            embeded_input = self.GRUs[i+1](input[:,:,i+1].unsqueeze(-1), Variable(torch.zeros(batch_size, self.hidden_dim).unsqueeze(0)).to(device))[0] # b 1 h
+            embeded_input, atten = self.LastStepAttentions[i+1](embeded_input)
+            embeded_input = embeded_input.unsqueeze(1)# b 1 h
+            atten = atten.unsqueeze(1)# b 1 h
 
-        GRU_embeded_input = torch.cat((GRU_embeded_input, demo_main), 1)# b i+1 h
-        posi_input = self.dropout(GRU_embeded_input) # batch_size * d_input * hidden_dim
+            Attention_embeded_input = torch.cat((Attention_embeded_input, embeded_input), 1)# b i h
+            self.gru_atten = torch.cat((self.gru_atten, atten), 1)# b i h
+
+        Attention_embeded_input = torch.cat((Attention_embeded_input, demo_main), 1)# b i+1 h
+        posi_input = self.dropout(Attention_embeded_input) # batch_size * d_input+1 * hidden_dim
 
         contexts = self.SublayerConnection(posi_input, lambda x: self.MultiHeadedAttention(posi_input, posi_input, posi_input, None))# # batch_size * d_input * hidden_dim
     
