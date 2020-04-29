@@ -134,7 +134,7 @@ class SingleAttention(nn.Module):
             k = torch.matmul(input, self.Wx)#b t h
             dot_product = torch.matmul(q, k.transpose(1, 2)).squeeze() # b t
             denominator =  self.rate * torch.log(2.71828 +  (1-self.sigmoid(dot_product)) * (b_time_decays.squeeze()))
-            e = dot_product/denominator # b * t
+            e = self.tanh(dot_product/denominator) # b * t
 
         
         # e = torch.exp(e - torch.max(e, dim=-1, keepdim=True).values)
