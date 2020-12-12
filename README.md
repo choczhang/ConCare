@@ -2,6 +2,15 @@
 
 The source code for *ConCare: Personalized Clinical Feature Embedding via Capturing the Healthcare Context*
 
+http://47.93.42.104/215 (Cause of death: CVD)   
+http://47.93.42.104/318 (Cause of death: GI disease)   
+http://47.93.42.104/616 (Cause of death: Other)   
+http://47.93.42.104/265 (Cause of death: GI disease)    
+http://47.93.42.104/812 (Cause of death: Cachexia)   
+http://47.93.42.104/455 (Cause of death: CVD)       
+http://47.93.42.104/998 (Alive)       
+http://47.93.42.104/544 (Alive)    
+
 Thanks for your interest in our work. Welcome to test the prototype of our visualization tool. The clinical hidden status is built by our latest representation learning model ConCare. The internationalised multi-language support will be available soon.
 
 ## Requirements
