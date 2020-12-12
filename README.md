@@ -2,7 +2,7 @@
 
 The source code for *ConCare: Personalized Clinical Feature Embedding via Capturing the Healthcare Context*
 
-Thanks for your interest in our work. More details about the experiment, case study and visualization system will be released before AAAI2020.
+Thanks for your interest in our work. Welcome to test the prototype of our visualization tool. The clinical hidden status is built by our latest representation learning model ConCare. The internationalised multi-language support will be available soon.
 
 ## Requirements
 
