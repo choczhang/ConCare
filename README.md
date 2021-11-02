@@ -30,4 +30,4 @@ To make it easier for you to use our code as well as the data, we have uploaded 
 ## Run ConCare
 
 All the hyper-parameters and steps are included in the `.ipynb` file, you can run it directly.
-You can also load the trained model, which saved in the `concare0` file.
+You can also load the trained model, which is saved in the `concare0` file.
