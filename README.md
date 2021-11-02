@@ -25,7 +25,7 @@ After building the **in-hospital mortality** dataset, please save the files in `
 
 ## Update
 
-To make it easier for you to use our code as well as the data, we have uploaded the trained model as well. Also to solve your confusion about the demographic (static baseline) information, we have uploaded the demographic (static baseline) information files to the Google Drive. You can download it from this link directly. https://drive.google.com/file/d/1TXn4UdtQCzfd7TdDJAo_6_IcnO2LUa1a/view?usp=sharing
+To make it easier for you to use our code as well as the data, we have uploaded the trained model as well.  We also upload the demographic (static baseline) information files to the Google Drive. You can download it from this link directly. https://drive.google.com/file/d/1TXn4UdtQCzfd7TdDJAo_6_IcnO2LUa1a/view?usp=sharing
 
 ## Run ConCare
 
