@@ -25,9 +25,12 @@ After building the **in-hospital mortality** dataset, please save the files in `
 
 ## Update
 
-To make it easier for you to use our code as well as the data, we have uploaded the trained model as well.  We also upload the demographic (static baseline) information files to the Google Drive. You can download it from this link directly. https://drive.google.com/file/d/1TXn4UdtQCzfd7TdDJAo_6_IcnO2LUa1a/view?usp=sharing
+To make it easier for you to use our code as well as the data, we have uploaded the trained model as well.  We also upload the demographic (static baseline) information files to the Google Drive. 
+
+You can download it from this link directly. https://drive.google.com/file/d/1TXn4UdtQCzfd7TdDJAo_6_IcnO2LUa1a/view?usp=sharing
 
 ## Run ConCare
 
 All the hyper-parameters and steps are included in the `.ipynb` file, you can run it directly.
+
 You can also load the trained model, which is saved in the `concare0` file.
