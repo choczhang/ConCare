@@ -29,6 +29,8 @@ To make it easier for you to use our code as well as the data, we have uploaded 
 
 You can download it from this link directly. https://drive.google.com/file/d/1TXn4UdtQCzfd7TdDJAo_6_IcnO2LUa1a/view?usp=sharing
 
+The test set can be obtained via https://drive.google.com/file/d/1KHRPLznKMFi4s1hCxDxAjGWBPPgHXxj7/view?usp=sharing
+
 ## Run ConCare
 
 All the hyper-parameters and steps are included in the `.ipynb` file, you can run it directly.
