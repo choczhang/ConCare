@@ -23,7 +23,6 @@ We do not provide the MIMIC-III data itself. You must acquire the data yourself 
 
 After building the **in-hospital mortality** dataset, please save the files in ```in-hospital-mortality``` directory to ```data/``` directory.
 
-## Update ！
 
 To make it easier for you to use our code as well as the data, we have uploaded the trained model as well.  We also upload the demographic (static baseline) information files to the Google Drive. 
 
